@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import { BmcService } from 'src/bmc/bmc.service';
 import { TrelloService } from 'src/trello/trello.service';
@@ -8,8 +10,8 @@ export class IntegrationService {
     private readonly bmcService: BmcService,
     private readonly trelloService: TrelloService,
   ) {}
-  sync(body: any) {
-    const cardDetails = this.trelloService.getTrelloCard(
+  async sync(body: any) {
+    const cardDetails = await this.trelloService.getTrelloCard(
       body.action.data.card.id,
     );
 
