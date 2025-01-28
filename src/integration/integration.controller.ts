@@ -13,6 +13,7 @@ export class IntegrationController {
 
   @Get('sync')
   getSync() {
+    console.log('getSync');
     return;
   }
 }
