@@ -7,6 +7,7 @@ export class IntegrationController {
 
   @Post('sync')
   sync(@Body() body: any) {
+    console.log('sync: ', body);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.integrationService.sync(body);
   }
