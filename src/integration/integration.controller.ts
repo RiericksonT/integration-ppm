@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { IntegrationService } from './integration.service';
 
 @Controller('integration')
@@ -9,5 +9,10 @@ export class IntegrationController {
   sync(@Body() body: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.integrationService.sync(body);
+  }
+
+  @Get('sync')
+  getSync() {
+    return;
   }
 }
