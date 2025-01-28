@@ -5,7 +5,7 @@ import { IntegrationService } from './integration.service';
 export class IntegrationController {
   constructor(private readonly integrationService: IntegrationService) {}
 
-  @Post()
+  @Post('sync')
   sync(@Body() body: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.integrationService.sync(body);

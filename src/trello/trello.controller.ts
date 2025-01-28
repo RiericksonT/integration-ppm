@@ -8,6 +8,6 @@ export class TrelloController {
   @Get()
   async getTrelloCard() {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.trelloService.getTrelloCard('67896b6af23208c5b797447a');
+    return this.trelloService.getTrelloCard('jWyaOLkL');
   }
 }

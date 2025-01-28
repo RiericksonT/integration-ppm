@@ -8,7 +8,7 @@ export class TrelloService {
   async getTrelloCard(idCard: string) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return await fetch(
-      `${process.env.TRELLO_URL}/cards/${idCard}?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}&customFieldItems=true`,
+      `${process.env.TRELLO_URL}/boards/${idCard}/lists?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`,
       {
         method: 'GET',
         headers: {
