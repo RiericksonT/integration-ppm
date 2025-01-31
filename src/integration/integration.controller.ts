@@ -6,11 +6,9 @@ export class IntegrationController {
   constructor(private readonly integrationService: IntegrationService) {}
 
   @Post('sync')
-  sync(@Body() body: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    console.log('sync: ', JSON.stringify(body.action.data));
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.integrationService.sync(body);
+  async sync(@Body() body: { id: string }) {
+    console.log('sync: ', JSON.stringify(body));
+    return await this.integrationService.sync(body.id);
   }
 
   @Get('sync')

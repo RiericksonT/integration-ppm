@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BmcController } from './bmc.controller';
-import { BmcService } from './bmc.service';
+import { BmcController } from '../bmc.controller';
+import { BmcService } from '../bmc.service';
 
 describe('BmcController', () => {
   let controller: BmcController;

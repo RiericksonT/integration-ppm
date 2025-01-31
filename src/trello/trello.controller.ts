@@ -1,13 +1,26 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { TrelloService } from './trello.service';
+import { ITrelloList } from './interface/Ilist';
+import { ITrelloCard } from './interface/ICard';
 
 @Controller('trello')
 export class TrelloController {
   constructor(private readonly trelloService: TrelloService) {}
 
-  @Get()
-  async getTrelloCard() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return this.trelloService.getTrelloCard('jWyaOLkL');
+  @Get('list')
+  async getTrelloList(): Promise<Array<ITrelloList>> {
+    return this.trelloService.getTrelloList(`${process.env.TRELLO_BOARD_ID}`);
+  }
+
+  @Get('listCards/:id')
+  async getTrelloCardsFromList(
+    @Param('id') id: string,
+  ): Promise<Array<ITrelloCard>> {
+    return this.trelloService.getTrelloCardsFromList(`${id}`);
+  }
+
+  @Get('card/:id')
+  async getTrelloCard(@Param('id') id: string): Promise<ITrelloCard> {
+    return this.trelloService.getTrelloCard(id);
   }
 }
