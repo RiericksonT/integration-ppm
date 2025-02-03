@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BmcService } from 'src/bmc/bmc.service';
 import { ITicketINCDto } from 'src/bmc/interface/ITicketINC';
 import { TrelloCardDto } from 'src/trello/interface/ICard';
+import { TrelloEventDTO } from 'src/trello/interface/IWebhookResponse';
 import { TrelloService } from 'src/trello/trello.service';
 
 @Injectable()
@@ -12,17 +13,17 @@ export class IntegrationService {
   ) {}
 
   //Function to get data from trello card and create a SDM ticket
-  async sync(id: string) {
+  async sync(body: TrelloEventDTO) {
+    const id = this.getCardId(body);
     const cardDetails: TrelloCardDto =
       await this.trelloService.getTrelloCard(id);
 
-    const name: string = this.getName(cardDetails);
-
+    const name: string[] = this.getName(cardDetails);
     //Mount a body with trello infos and defaults configs
     const bodyTicket: ITicketINCDto = {
       values: {
-        First_Name: name.split(' ')[0],
-        Last_Name: name.split(' ')[1],
+        First_Name: name[0],
+        Last_Name: name[1],
         Description: cardDetails.name,
         Detailed_Decription: cardDetails.desc,
         Impact: '1-Critical',
@@ -48,7 +49,7 @@ export class IntegrationService {
   }
 
   //Function to get a name of custom field in trello card
-  getName(cardDetails: TrelloCardDto): string {
+  getName(cardDetails: TrelloCardDto): string[] {
     const requiredLabels = ['BUG', 'Website'];
 
     if (
@@ -60,12 +61,31 @@ export class IntegrationService {
     }
 
     const labelCostummer = cardDetails.customFieldItems?.filter(
-      (field) => field.id === `${process.env.TRELLO_CUSTOM_NAME}`,
+      (field) => field.idCustomField === `${process.env.TRELLO_CUSTOM_NAME}`,
     )[0];
 
     const name =
       labelCostummer && labelCostummer.value ? labelCostummer.value.text : '';
 
-    return name!;
+    const nameParts = name!.split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ');
+
+    return [firstName, lastName];
+  }
+
+  getCardId(body: TrelloEventDTO) {
+    if (
+      body.action.display.translationKey !==
+      'action_move_card_from_list_to_list'
+    ) {
+      throw new Error();
+    }
+
+    if (body.action.data.listAfter.name !== 'VALIDAÇÃO') {
+      throw new Error();
+    }
+
+    return body.action.display.entities.card.id;
   }
 }
