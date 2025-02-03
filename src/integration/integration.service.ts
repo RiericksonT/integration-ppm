@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BmcService } from 'src/bmc/bmc.service';
-import { ITicketINC } from 'src/bmc/interface/ITicketINC';
-import { ITrelloCard } from 'src/trello/interface/ICard';
+import { ITicketINCDto } from 'src/bmc/interface/ITicketINC';
+import { TrelloCardDto } from 'src/trello/interface/ICard';
 import { TrelloService } from 'src/trello/trello.service';
 
 @Injectable()
@@ -10,29 +10,19 @@ export class IntegrationService {
     private readonly bmcService: BmcService,
     private readonly trelloService: TrelloService,
   ) {}
+
+  //Function to get data from trello card and create a SDM ticket
   async sync(id: string) {
-    const cardDetails: ITrelloCard = await this.trelloService.getTrelloCard(id);
+    const cardDetails: TrelloCardDto =
+      await this.trelloService.getTrelloCard(id);
 
-    const requiredLabels = ['BUG', 'Website'];
+    const name: string = this.getName(cardDetails);
 
-    if (
-      !requiredLabels.every((tag) =>
-        cardDetails.labels.some((label) => label.name === tag),
-      )
-    ) {
-      throw new Error();
-    }
-
-    const labelCostummer = cardDetails.customFieldItems?.filter(
-      (field) => field.id === '679d151f1712af5336d40fc0',
-    )[0];
-
-    const name = labelCostummer?.value.text;
-
-    const bodyTicket: ITicketINC = {
+    //Mount a body with trello infos and defaults configs
+    const bodyTicket: ITicketINCDto = {
       values: {
-        First_Name: name!.split(' ')[0],
-        Last_Name: name!.split(' ')[1],
+        First_Name: name.split(' ')[0],
+        Last_Name: name.split(' ')[1],
         Description: cardDetails.name,
         Detailed_Decription: cardDetails.desc,
         Impact: '1-Critical',
@@ -55,5 +45,27 @@ export class IntegrationService {
 
     console.log(bodyTicket);
     return await this.bmcService.createIncident(bodyTicket);
+  }
+
+  //Function to get a name of custom field in trello card
+  getName(cardDetails: TrelloCardDto): string {
+    const requiredLabels = ['BUG', 'Website'];
+
+    if (
+      !requiredLabels.every((tag) =>
+        cardDetails.labels.some((label) => label.name === tag),
+      )
+    ) {
+      throw new Error();
+    }
+
+    const labelCostummer = cardDetails.customFieldItems?.filter(
+      (field) => field.id === `${process.env.TRELLO_CUSTOM_NAME}`,
+    )[0];
+
+    const name =
+      labelCostummer && labelCostummer.value ? labelCostummer.value.text : '';
+
+    return name!;
   }
 }

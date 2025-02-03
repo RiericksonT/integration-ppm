@@ -1,99 +1,93 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+# Documentação da Integração Trello → BMC ITSM
+
+## 1. Visão Geral
+
+Esta documentação descreve o fluxo de integração entre o Trello e o SDM(BMC ITSM), permitindo a criação automática de tickets no SDM com base em informações dos cards do Trello.
+
+A integração entre Trello e BMC ITSM tem como objetivo automatizar a criação de tickets no SDM a partir de informações de cards no Trello. Quando um card é criado ou atualizado em um board específico, um serviço de integração (desenvolvido em Node.js/NestJS) captura os dados relevantes, como título, descrição, prioridade e responsável. Esses dados são processados e enviados para a API do SDM, onde um novo ticket de incidente e requisição é gerado automaticamente.
+
+## 2. Arquitetura da Solução
+
+A integração entre o **Trello** e o **BMC ITSM (SDM)** segue um fluxo estruturado para garantir a criação automática de tickets no ITSM sempre que um card for adicionado a uma coluna monitorada no Trello. A arquitetura da solução é composta por três camadas principais:
+
+A solução envolve três elementos principais:
+
+1. **Trello**:
+   - O usuário adiciona um card a uma **coluna X**, que é previamente configurada para ser monitorada.
+   - Quando isso ocorre, um **webhook** do Trello dispara uma mensagem para o serviço de integração.
+2. **Serviço de Integração**:
+   - Processa as informações do card recebido no webhook.
+   - Verifica se o card contém **tags de identificação (Tag padrão BUG)** para categorização.
+   - Se houver tags, o serviço constrói um **JSON de requisição do ticket** no formato esperado pelo SDM.
+   - Envia o JSON para o endpoint da API do SDM.
+3. **BMC ITSM (SDM)**:
+   - Recebe a requisição enviada pelo serviço de integração.
+   - Realiza uma validação dos dados recebidos.
+   - Se a requisição for válida, o SDM cria um novo ticket.
+   - Caso contrário, retorna um erro e encerra o fluxo.
+
+### 2.1 Fluxo de Comunicação
+
+A comunicação entre os componentes segue um fluxo bem definido:
+
+1. **Disparo do Webhook**:
+   - O Trello dispara uma requisição HTTP para o serviço de integração sempre que um card for movido para a coluna monitorada. **É necessário realizar a criação do webhook no trello**
+2. **Processamento dos Dados**:
+   - O serviço de integração analisa os dados do card e verifica a presença de tags.
+3. **Criação do Payload**:
+   - Se o card tiver tags válidas, um JSON estruturado contendo as informações do ticket é gerado.
+4. **Envio para o SDM**:
+   - O serviço de integração envia o JSON para a API do SDM via uma requisição HTTP.
+5. **Validação e Criação do Ticket**:
+   - O SDM valida a requisição e, se estiver correta, cria o ticket correspondente.
+
+- Observações:
+  Todas as requisições para a API do trello exige um token de conta, para obter esse token você deve fazer seu login com a sua conta do trello, o mesmo serve para as requisições do SDM que necessitam de login com a conta institucional.
+
+## 3. **Tecnologias Utilizadas**
+
+- **Trello API**: Para captura de informações dos cards.
+- **Node.js + NestJS**: Serviço intermediário para processar e enviar dados ao ITSM.
+- **BMC ITSM API**: Endpoint para criação de tickets.
+
+## 4. Configuração
+
+### 4.1 Criando um Webhook no Trello
+
+- Acesse a API do Trello e gere um token de autenticação.
+- Configure um webhook para monitorar mudanças em uma lista especifica do seu board.
+- Aponte o webhook para o serviço de integração.
+
+### 4.2 **Configurando o Serviço de Integraçã**
+
+1. Instale as dependências necessárias:
+
+   ```
+
+   npm install axios @nestjs/common dotenv
+
+   ```
+
+2. Configure as variáveis de ambiente no arquivo `.env`:
+
+   ```
+   TRELLO_API_KEY={API_KEY}
+   TRELLO_API_TOKEN={YOUR_TOKEN}
+   TRELLO_API_SECRET={API_SECRET}
+   TRELLO_URL=https://api.trello.com/1
+
+   TRELLO_CUSTOM_NAME={Custtom field to get a name(if you need create more envs)}
+   TRELLO_BOARD_ID={Board id]
+
+   BMC_URL_PROD=https://atendimentomoura-restapi.onbmc.com/api
+   BMC_URL_QA=https://atendimentomoura-qa-restapi.onbmc.com/api
+
+   ```
+
+3. Execute o serviço para receber as notificações do Trello e processar a criação dos tickets.
+
+## 5. Endpoints
+
+Endpoint para o swagger: /api/docs/
+
 </p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
-```
-
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

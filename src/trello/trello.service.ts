@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Injectable } from '@nestjs/common';
-import { ITrelloList } from './interface/Ilist';
-import { ITrelloCard } from './interface/ICard';
+import { TrelloCardDto } from './interface/ICard';
 
 @Injectable()
 export class TrelloService {
   constructor() {}
 
-  async getTrelloCard(idCard: string): Promise<ITrelloCard> {
+  //Function to get a card from id
+  async getTrelloCard(idCard: string): Promise<TrelloCardDto> {
     try {
       const response = await fetch(
         `${process.env.TRELLO_URL}/cards/${idCard}?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}&customFieldItems=true`,
@@ -26,7 +25,7 @@ export class TrelloService {
       }
 
       const text = await response.text();
-      const data = JSON.parse(text) as ITrelloCard;
+      const data = JSON.parse(text) as TrelloCardDto;
 
       return data; // Garantir que a resposta seja do tipo esperado
     } catch (error) {
@@ -35,67 +34,67 @@ export class TrelloService {
     }
   }
 
-  async getTrelloCardsFromList(idList: string): Promise<Array<ITrelloCard>> {
-    return await fetch(
-      `${process.env.TRELLO_URL}/lists/${idList}/cards?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`,
-      {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      },
-    )
-      .then((response) => {
-        return response.text();
-      })
-      .then((text) => {
-        return JSON.parse(text);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }
+  // async getTrelloCardsFromList(idList: string): Promise<Array<ITrelloCard>> {
+  //   return await fetch(
+  //     `${process.env.TRELLO_URL}/lists/${idList}/cards?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`,
+  //     {
+  //       method: 'GET',
+  //       headers: {
+  //         Accept: 'application/json',
+  //       },
+  //     },
+  //   )
+  //     .then((response) => {
+  //       return response.text();
+  //     })
+  //     .then((text) => {
+  //       return JSON.parse(text);
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //     });
+  // }
 
-  async getTrelloList(idBoard: string): Promise<Array<ITrelloList>> {
-    return await fetch(
-      `${process.env.TRELLO_URL}/boards/${idBoard}/lists?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`,
-      {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      },
-    )
-      .then((response) => {
-        return response.text();
-      })
-      .then((text) => {
-        return JSON.parse(text) as Array<ITrelloList>;
-      })
-      .catch((error) => {
-        console.error(error);
-        return [];
-      });
-  }
+  // async getTrelloList(idBoard: string): Promise<Array<ITrelloList>> {
+  //   return await fetch(
+  //     `${process.env.TRELLO_URL}/boards/${idBoard}/lists?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`,
+  //     {
+  //       method: 'GET',
+  //       headers: {
+  //         Accept: 'application/json',
+  //       },
+  //     },
+  //   )
+  //     .then((response) => {
+  //       return response.text();
+  //     })
+  //     .then((text) => {
+  //       return JSON.parse(text) as Array<ITrelloList>;
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //       return [];
+  //     });
+  // }
 
-  async getTrelloBoard(idBoard: string) {
-    return await fetch(
-      `${process.env.TRELLO_URL}/boards/${idBoard}?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`,
-      {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-      },
-    )
-      .then((response) => {
-        return response.text();
-      })
-      .then((text) => {
-        return JSON.parse(text);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }
+  // async getTrelloBoard(idBoard: string) {
+  //   return await fetch(
+  //     `${process.env.TRELLO_URL}/boards/${idBoard}?key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`,
+  //     {
+  //       method: 'GET',
+  //       headers: {
+  //         Accept: 'application/json',
+  //       },
+  //     },
+  //   )
+  //     .then((response) => {
+  //       return response.text();
+  //     })
+  //     .then((text) => {
+  //       return JSON.parse(text);
+  //     })
+  //     .catch((error) => {
+  //       console.error(error);
+  //     });
+  // }
 }
