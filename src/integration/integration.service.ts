@@ -79,11 +79,11 @@ export class IntegrationService {
       body.action.display.translationKey !==
       'action_move_card_from_list_to_list'
     ) {
-      throw new Error();
+      throw new Error('A ação realizada não foi mover card de coluna');
     }
 
-    if (body.action.data.listAfter.name !== 'VALIDAÇÃO') {
-      throw new Error();
+    if (body.action.data.listAfter.name !== 'EM ANDAMENTO') {
+      throw new Error('Coluna de destino não foi Em andamento');
     }
 
     return body.action.display.entities.card.id;
