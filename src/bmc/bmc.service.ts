@@ -20,8 +20,8 @@ export class BmcService {
         password: body.password,
       }).toString(),
     })
-      .then((res) => {
-        const token = res.text();
+      .then(async (res) => {
+        const token = await res.text();
         console.log(token);
         return token;
       })

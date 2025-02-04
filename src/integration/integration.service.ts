@@ -67,9 +67,15 @@ export class IntegrationService {
     const name =
       labelCostummer && labelCostummer.value ? labelCostummer.value.text : '';
 
-    const nameParts = name!.split(' ');
-    const firstName = nameParts[0];
-    const lastName = nameParts.slice(1).join(' ');
+    const hasSpecialChars = /[^a-zA-ZÀ-ÿ\s]/.test(name!);
+
+    if (hasSpecialChars) {
+      return ['PEDRO', 'SANTANA'];
+    }
+
+    const nameParts = name!.split(' ').filter(Boolean);
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
 
     return [firstName, lastName];
   }
