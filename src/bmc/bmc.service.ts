@@ -29,36 +29,46 @@ export class BmcService {
   //Function to create a INC in BMC
   async createIncident(
     body: ITicketINCDto,
-  ): Promise<IncidentResponseWrapperDto | Error> {
-    const token = await this.login({
-      username: 'wendy.rhausten@grupomoura.com',
-      password: '@Sejabemvindo2025',
-    });
+  ): Promise<IncidentResponseWrapperDto> {
+    try {
+      const token = await this.login({
+        username: 'wendy.rhausten@grupomoura.com',
+        password: '@Sejabemvindo2025',
+      });
 
-    if (!token) {
-      throw new Error('Failed to login and retrieve token');
-    }
-    const response = await fetch(
-      `${process.env.BMC_URL_QA}/arsys/v1/entry/HPD:IncidentInterface_Create?fields=values(Incident Number)`,
-      {
+      if (!token) {
+        throw new Error('Failed to login and retrieve token');
+      }
+
+      console.log('Token recebido!');
+
+      const url = `${process.env.BMC_URL_QA}/arsys/v1/entry/HPD:IncidentInterface_Create?fields=values(Incident Number)`;
+      console.log(`Enviando requisição para ${url}`);
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `AR-JWT ${token}`, // Melhor usar uma variável de ambiente
+          Authorization: `AR-JWT ${token}`,
         },
         body: JSON.stringify(body),
-      },
-    );
+      });
 
-    if (!response.ok) {
-      return new Error(
-        `Erro ao criar incidente: ${response.status} ${response.statusText}`,
-      );
-    } else {
-      const data: IncidentResponseWrapperDto =
-        (await response.json()) as IncidentResponseWrapperDto;
+      console.log(`Requisição enviada, status: ${response.status}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Erro ao criar incidente: ${response.status} ${response.statusText} - ${errorText}`,
+        );
+      }
+
+      const data = (await response.json()) as IncidentResponseWrapperDto;
       console.log('Incidente criado com sucesso:', data);
       return data;
+    } catch (error) {
+      console.error('Erro ao criar incidente:', error);
+      throw error;
     }
   }
 }
