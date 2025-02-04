@@ -21,8 +21,9 @@ export class BmcService {
       }).toString(),
     })
       .then((res) => {
-        console.log(res.text());
-        return res.text();
+        const token = res.text();
+        console.log(token);
+        return token;
       })
       .catch((error) => console.error(error));
   }
