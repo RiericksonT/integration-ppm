@@ -1,12 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { TrelloService } from 'src/trello/trello.service';
 
 import { ITicketINCDto } from './interface/ITicketINC';
 import { IncidentResponseWrapperDto } from './interface/IIncidenteResponse';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class BmcService {
-  constructor(private trelloService: TrelloService) {}
+  constructor(
+    private trelloService: TrelloService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   //Function to login in BMC API and get a token
   async login(body: { username: string; password: string }) {
@@ -33,11 +37,18 @@ export class BmcService {
     body: ITicketINCDto,
   ): Promise<IncidentResponseWrapperDto> {
     try {
-      const token = await this.login({
-        username: `${process.env.BMC_USER}`,
-        password: `${process.env.BMC_PASSWORD}`,
-      });
+      if (!(await this.cacheManager.get('token'))) {
+        const token = await this.login({
+          username: `${process.env.BMC_USER}`,
+          password: `${process.env.BMC_PASSWORD}`,
+        });
 
+        await this.cacheManager.set('token', JSON.stringify(token), 520000);
+      }
+      const tokenString = await this.cacheManager.get('token');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const token =
+        typeof tokenString === 'string' ? JSON.parse(tokenString) : tokenString;
       if (!token) {
         throw new Error('Failed to login and retrieve token');
       }
