@@ -30,11 +30,11 @@ export class IntegrationService {
         Status: 'Assigned',
         'Reported Source': 'Direct Input',
         Service_Type: 'User Service Request',
-        'Assigned Group': 'ARQUITETURA E DADOS - INTEGRACOES',
-        'Assigned Group ID': 'SGP000000010539',
-        'Categorization Tier 1': 'RELATAR ERRO',
-        'Categorization Tier 2': 'PORTAL B2B',
-        'Categorization Tier 3': 'INCIDENTE',
+        'Assigned Group': `${process.env.BMC_SUPPORT_GROUP_NAME}`,
+        'Assigned Group ID': `${process.env.BMC_SUPPORT_GROUP_ID}`,
+        'Categorization Tier 1': `${process.env.CATEGORIZATION_TIER_1}`,
+        'Categorization Tier 2': `${process.env.CATEGORIZATION_TIER_2}`,
+        'Categorization Tier 3': `${process.env.CATEGORIZATION_TIER_3}`,
         Company: 'Grupo Moura',
         'Assigned Support Company': 'Grupo Moura',
         'Assigned Support Organization': 'DTISS',
@@ -49,16 +49,6 @@ export class IntegrationService {
 
   //Function to get a name of custom field in trello card
   getName(cardDetails: TrelloCardDto): string {
-    const requiredLabels = ['BUG', 'Website'];
-
-    if (
-      !requiredLabels.every((tag) =>
-        cardDetails.labels.some((label) => label.name === tag),
-      )
-    ) {
-      throw new Error();
-    }
-
     const labelCostummer = cardDetails.customFieldItems?.filter(
       (field) => field.id === `${process.env.TRELLO_CUSTOM_NAME}`,
     )[0];

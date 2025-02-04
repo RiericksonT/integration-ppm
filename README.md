@@ -82,6 +82,12 @@ A comunicação entre os componentes segue um fluxo bem definido:
    BMC_URL_PROD=https://atendimentomoura-restapi.onbmc.com/api
    BMC_URL_QA=https://atendimentomoura-qa-restapi.onbmc.com/api
 
+   BMC_SUPPORT_GROUP_ID={Support group ID}
+   BMC_SUPPORT_GROUP_NAME={Support group name}
+   CATEGORIZATION_TIER_1={Product category 1}
+   CATEGORIZATION_TIER_2={Product category 2}
+   CATEGORIZATION_TIER_3={Product category 3}
+
    ```
 
 3. Execute o serviço para receber as notificações do Trello e processar a criação dos tickets.
