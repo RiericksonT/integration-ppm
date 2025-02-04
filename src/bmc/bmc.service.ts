@@ -21,6 +21,7 @@ export class BmcService {
       }).toString(),
     })
       .then((res) => {
+        console.log(res.text());
         return res.text();
       })
       .catch((error) => console.error(error));
@@ -32,8 +33,8 @@ export class BmcService {
   ): Promise<IncidentResponseWrapperDto> {
     try {
       const token = await this.login({
-        username: 'wendy.rhausten@grupomoura.com',
-        password: '@Sejabemvindo2025',
+        username: `${process.env.BMC_USER}`,
+        password: `${process.env.BMC_PASSWORD}`,
       });
 
       if (!token) {
