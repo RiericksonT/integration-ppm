@@ -1,211 +1,139 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsBoolean,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
-class TextData {
+class TrelloActionDataCardDto {
   @ApiProperty()
-  emoji: Record<string, unknown>;
-}
-
-class Card {
-  @ApiProperty()
-  @IsString()
   id: string;
 
   @ApiProperty()
-  @IsString()
   name: string;
 
   @ApiProperty()
-  @IsNumber()
   idShort: number;
 
   @ApiProperty()
-  @IsString()
   shortLink: string;
 }
 
-class Board {
+class TrelloActionDataBoardDto {
   @ApiProperty()
-  @IsString()
   id: string;
 
   @ApiProperty()
-  @IsString()
   name: string;
 
   @ApiProperty()
-  @IsString()
   shortLink: string;
 }
 
-class List {
+class TrelloActionDataListDto {
   @ApiProperty()
-  @IsString()
   id: string;
 
   @ApiProperty()
-  @IsString()
   name: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  color?: string;
+  @ApiProperty({ required: false, nullable: true })
+  color?: string | null;
 }
 
-class Data {
+class TrelloActionTextDataDto {
   @ApiProperty()
-  @IsString()
+  emoji: Record<string, any>;
+}
+
+class TrelloActionDataDto {
+  @ApiProperty()
   idCard: string;
 
   @ApiProperty()
-  @IsString()
   text: string;
 
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => TextData)
-  textData: TextData;
+  textData: TrelloActionTextDataDto;
 
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => Card)
-  card: Card;
+  card: TrelloActionDataCardDto;
 
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => Board)
-  board: Board;
+  board: TrelloActionDataBoardDto;
 
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => List)
-  list: List;
+  list: TrelloActionDataListDto;
 }
 
-class PerAction {
+class TrelloActionLimitsDto {
   @ApiProperty()
-  @IsString()
   status: string;
 
   @ApiProperty()
-  @IsNumber()
   disableAt: number;
 
   @ApiProperty()
-  @IsNumber()
   warnAt: number;
 }
 
-class Reactions {
+class TrelloActionReactionsDto {
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => PerAction)
-  perAction: PerAction;
+  perAction: TrelloActionLimitsDto;
 
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => PerAction)
-  uniquePerAction: PerAction;
+  uniquePerAction: TrelloActionLimitsDto;
 }
 
-class Limits {
+class TrelloMemberCreatorDto {
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => Reactions)
-  reactions: Reactions;
-}
-
-class MemberCreator {
-  @ApiProperty()
-  @IsString()
   id: string;
 
   @ApiProperty()
-  @IsBoolean()
   activityBlocked: boolean;
 
   @ApiProperty()
-  @IsString()
   avatarHash: string;
 
   @ApiProperty()
-  @IsString()
   avatarUrl: string;
 
   @ApiProperty()
-  @IsString()
   fullName: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
+  @ApiProperty({ nullable: true })
   idMemberReferrer: string | null;
 
   @ApiProperty()
-  @IsString()
   initials: string;
 
   @ApiProperty()
-  nonPublic: Record<string, unknown>;
+  nonPublic: Record<string, any>;
 
   @ApiProperty()
-  @IsBoolean()
   nonPublicAvailable: boolean;
 
   @ApiProperty()
-  @IsString()
   username: string;
 }
 
 export class TrelloActionDto {
   @ApiProperty()
-  @IsString()
   id: string;
 
   @ApiProperty()
-  @IsString()
   idMemberCreator: string;
 
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => Data)
-  data: Data;
+  data: TrelloActionDataDto;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  appCreator?: string | null;
+  @ApiProperty({ nullable: true })
+  appCreator: string | null;
 
   @ApiProperty()
-  @IsString()
   type: string;
 
   @ApiProperty()
-  @IsString()
   date: string;
 
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => Limits)
-  limits: Limits;
+  limits: TrelloActionReactionsDto;
 
   @ApiProperty()
-  @ValidateNested()
-  @Type(() => MemberCreator)
-  memberCreator: MemberCreator;
-}
-
-export class TrelloActionsDto {
-  @ApiProperty({ type: [TrelloActionDto] })
-  @ValidateNested({ each: true })
-  @Type(() => TrelloActionDto)
-  actions: TrelloActionDto[];
+  memberCreator: TrelloMemberCreatorDto;
 }

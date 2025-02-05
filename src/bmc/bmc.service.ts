@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Inject, Injectable } from '@nestjs/common';
 import { TrelloService } from 'src/trello/trello.service';
-
 import { ITicketINCDto } from './interface/ITicketINC';
 import { IncidentResponseWrapperDto } from './interface/IIncidenteResponse';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
@@ -10,54 +9,49 @@ import { UpdateTicketDto } from './interface/IUpdateTicket';
 @Injectable()
 export class BmcService {
   constructor(
-    private trelloService: TrelloService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly trelloService: TrelloService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  //Function to login in BMC API and get a token
-  async login(body: { username: string; password: string }) {
-    return fetch(`${process.env.BMC_URL_QA}/jwt/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        username: body.username,
-        password: body.password,
-      }).toString(),
-    })
-      .then(async (res) => {
-        const token = await res.text();
-        console.log(token);
-        return token;
-      })
-      .catch((error) => console.error(error));
+  // Função para fazer login e obter o token BMC
+  private async login(body: {
+    username: string;
+    password: string;
+  }): Promise<string> {
+    try {
+      const res = await fetch(`${process.env.BMC_URL_QA}/jwt/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          username: body.username,
+          password: body.password,
+        }).toString(),
+      });
+
+      if (!res.ok) {
+        throw new Error(
+          `Falha ao fazer login: ${res.status} ${res.statusText}`,
+        );
+      }
+
+      const token = await res.text();
+      await this.cacheManager.set('token', token, 520000); // Cache com TTL para o token
+      return token;
+    } catch (error) {
+      console.error('Erro ao fazer login no BMC:', error);
+      throw error;
+    }
   }
 
-  //Function to create a INC in BMC
+  // Função para criar um incidente no BMC
   async createIncident(
     body: ITicketINCDto,
   ): Promise<IncidentResponseWrapperDto> {
     try {
-      if (!(await this.cacheManager.get('token'))) {
-        const token = await this.login({
-          username: `${process.env.BMC_USER}`,
-          password: `${process.env.BMC_PASSWORD}`,
-        });
-
-        await this.cacheManager.set('token', JSON.stringify(token), 520000);
-      }
-      const tokenString = await this.cacheManager.get('token');
-      const token =
-        typeof tokenString === 'string' ? JSON.parse(tokenString) : tokenString;
-      if (!token) {
-        throw new Error('Failed to login and retrieve token');
-      }
-
-      console.log('Token recebido!');
-
+      const token = await this.getToken();
       const url = `${process.env.BMC_URL_QA}/arsys/v1/entry/HPD:IncidentInterface_Create?fields=values(Incident Number)`;
-      console.log(`Enviando requisição para ${url}`);
 
       const response = await fetch(url, {
         method: 'POST',
@@ -68,8 +62,6 @@ export class BmcService {
         body: JSON.stringify(body),
       });
 
-      console.log(`Requisição enviada, status: ${response.status}`);
-
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
@@ -77,7 +69,7 @@ export class BmcService {
         );
       }
 
-      const data = (await response.json()) as IncidentResponseWrapperDto;
+      const data: IncidentResponseWrapperDto = await response.json();
       console.log('Incidente criado com sucesso:', data);
       return data;
     } catch (error) {
@@ -86,24 +78,10 @@ export class BmcService {
     }
   }
 
-  async updateIncident(body: UpdateTicketDto) {
+  // Função para atualizar um incidente no BMC
+  async updateIncident(body: UpdateTicketDto): Promise<void> {
     try {
-      if (!(await this.cacheManager.get('token'))) {
-        const token = await this.login({
-          username: `${process.env.BMC_USER}`,
-          password: `${process.env.BMC_PASSWORD}`,
-        });
-
-        await this.cacheManager.set('token', JSON.stringify(token), 520000);
-      }
-      const tokenString = await this.cacheManager.get('token');
-      const token =
-        typeof tokenString === 'string' ? JSON.parse(tokenString) : tokenString;
-      if (!token) {
-        throw new Error('Failed to login and retrieve token');
-      }
-
-      console.log('Token recebido!');
+      const token = await this.getToken();
       const response = await fetch(
         `${process.env.BMC_URL_QA}/com.bmc.dsm.itsm.itsm-rest-api/incident/${body.id}`,
         {
@@ -118,21 +96,38 @@ export class BmcService {
       );
 
       if (!response.ok) {
+        const errorText = await response.text();
         console.error(
-          `Erro ao atualizar incidente: ${response.status} - ${response.statusText}`,
+          `Erro ao atualizar incidente: ${response.status} ${response.statusText}`,
         );
-        const errorText = await response.text(); // Captura o corpo da resposta mesmo que não seja JSON
         console.error('Detalhes do erro:', errorText);
         return;
       }
 
-      // Verifica se há conteúdo antes de tentar parsear JSON
       const responseText = await response.text();
       const responseData = responseText ? JSON.parse(responseText) : {};
-
       console.log('Incidente atualizado com sucesso:', responseData);
     } catch (error) {
-      console.error('Erro na requisição:', error);
+      console.error('Erro na requisição para atualizar incidente:', error);
+      throw error; // Re-throw to propagate error to the caller
     }
+  }
+
+  // Função auxiliar para obter o token do cache ou realizar login
+  private async getToken(): Promise<string> {
+    let token = await this.cacheManager.get<string>('token');
+
+    // Verifica se o token não existe ou é inválido
+    if (!token) {
+      console.log(
+        'Token não encontrado no cache ou expirado. Realizando login...',
+      );
+      token = await this.login({
+        username: process.env.BMC_USER || '',
+        password: process.env.BMC_PASSWORD || '',
+      });
+    }
+
+    return token; // Token retornado de forma segura
   }
 }
