@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import { TrelloCardDto } from './interface/ICard';
+import { TrelloActionsDto } from './interface/ICommentsResponse';
 
 @Injectable()
 export class TrelloService {
@@ -31,6 +34,57 @@ export class TrelloService {
     } catch (error) {
       console.error('Error:', error);
       throw new Error(); // Retornar undefined caso ocorra erro
+    }
+  }
+
+  async commentOnCard(id: string, text: string) {
+    try {
+      const response = await fetch(
+        `https://api.trello.com/1/cards/${id}/actions/comments?text=${text}&key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`,
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        console.error(`Error commenting card: ${response.statusText}`);
+        throw new Error();
+      }
+      const res = await response.text();
+      const data = JSON.parse(res);
+      return data;
+    } catch (error) {
+      console.error('Error:', error);
+      throw new Error('Error: to comment in card');
+    }
+  }
+
+  async getCommentsOnCard(id: string): Promise<TrelloActionsDto> {
+    try {
+      const response = await fetch(
+        `https://api.trello.com/1/cards/${id}/actions??filter=commentCard&key=${process.env.TRELLO_API_KEY}&token=${process.env.TRELLO_API_TOKEN}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+        },
+      );
+
+      if (!response.ok) {
+        console.error(`Error getting comments on card: ${response.statusText}`);
+        throw new Error();
+      }
+
+      const res = await response.text();
+      const data = JSON.parse(res);
+      return data;
+    } catch (error) {
+      console.error('Error:', error);
+      throw new Error('Error: to get comments in card');
     }
   }
 

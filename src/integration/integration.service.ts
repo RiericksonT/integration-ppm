@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import { BmcService } from 'src/bmc/bmc.service';
 import { ITicketINCDto } from 'src/bmc/interface/ITicketINC';
-import { UpdateTicketDto } from 'src/bmc/interface/IUpdateTicket';
 import { TrelloCardDto } from 'src/trello/interface/ICard';
 import { TrelloEventDTO } from 'src/trello/interface/IWebhookResponse';
 import { TrelloService } from 'src/trello/trello.service';
@@ -48,14 +48,36 @@ export class IntegrationService {
       };
 
       console.log(bodyTicket);
-      return await this.bmcService.createIncident(bodyTicket);
+      const incident = await this.bmcService.createIncident(bodyTicket);
+      if (incident) {
+        const comment = await this.trelloService.commentOnCard(
+          cardDetails.id,
+          incident.values['Incident Number'],
+        );
+
+        console.log(comment);
+        return {
+          incident: incident.values['Incident Number'],
+          TrelloCard: cardDetails.id,
+        };
+      }
     } else {
-      const updateBody: UpdateTicketDto = {
-        id: req.id,
+      const incident = await this.trelloService.getCommentsOnCard(
+        cardDetails.id,
+      );
+      const filteredIncidents = incident.actions.filter((item) =>
+        item.data.text.includes('INC'),
+      );
+
+      if (filteredIncidents.length === 0) {
+        throw new Error('Não encontrou o incidente no card do Trello');
+      }
+
+      const updateBody = {
+        id: filteredIncidents[0].data.text,
         status: req.status,
       };
 
-      console.log(updateBody);
       return await this.bmcService.updateIncident(updateBody);
     }
   }
