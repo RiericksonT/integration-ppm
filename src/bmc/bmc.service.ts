@@ -105,7 +105,7 @@ export class BmcService {
 
       console.log('Token recebido!');
       const response = await fetch(
-        `${process.env.BMC_URL_PROD}/com.bmc.dsm.itsm.itsm-rest-api/incident/${body.id}`,
+        `${process.env.BMC_URL_QA}/com.bmc.dsm.itsm.itsm-rest-api/incident/${body.id}`,
         {
           method: 'PATCH',
           headers: {
