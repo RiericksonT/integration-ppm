@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Inject, Injectable } from '@nestjs/common';
 import { TrelloService } from 'src/trello/trello.service';
@@ -5,13 +7,17 @@ import { ITicketINCDto } from './interface/ITicketINC';
 import { IncidentResponseWrapperDto } from './interface/IIncidenteResponse';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { UpdateTicketDto } from './interface/IUpdateTicket';
+import { Applogger } from 'src/logger/logger.service';
 
 @Injectable()
 export class BmcService {
   constructor(
     private readonly trelloService: TrelloService,
+    private logger: Applogger,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
-  ) {}
+  ) {
+    this.logger.setContext('BMC service');
+  }
 
   // Função para fazer login e obter o token BMC
   private async login(body: {
@@ -19,6 +25,7 @@ export class BmcService {
     password: string;
   }): Promise<string> {
     try {
+      this.logger.log(`Tentando fazer login com o usuário: ${body.username}`);
       const res = await fetch(`${process.env.BMC_URL_PROD}/jwt/login`, {
         method: 'POST',
         headers: {
@@ -31,6 +38,9 @@ export class BmcService {
       });
 
       if (!res.ok) {
+        this.logger.error(
+          `Falha ao fazer login: ${res.status} ${res.statusText}`,
+        );
         throw new Error(
           `Falha ao fazer login: ${res.status} ${res.statusText}`,
         );
@@ -38,9 +48,10 @@ export class BmcService {
 
       const token = await res.text();
       await this.cacheManager.set('token', token, 520000); // Cache com TTL para o token
+      this.logger.log('Login bem-sucedido. Token armazenado no cache.');
       return token;
     } catch (error) {
-      console.error('Erro ao fazer login no BMC:', error);
+      this.logger.error('Erro ao fazer login no BMC:', error.message);
       throw error;
     }
   }
@@ -50,6 +61,7 @@ export class BmcService {
     body: ITicketINCDto,
   ): Promise<IncidentResponseWrapperDto> {
     try {
+      this.logger.log('Tentando criar incidente no BMC.');
       const token = await this.getToken();
       const url = `${process.env.BMC_URL_PROD}/arsys/v1/entry/HPD:IncidentInterface_Create?fields=values(Incident Number)`;
 
@@ -64,16 +76,19 @@ export class BmcService {
 
       if (!response.ok) {
         const errorText = await response.text();
+        this.logger.error(
+          `Erro ao criar incidente: ${response.status} ${response.statusText} - ${errorText}`,
+        );
         throw new Error(
           `Erro ao criar incidente: ${response.status} ${response.statusText} - ${errorText}`,
         );
       }
 
       const data: IncidentResponseWrapperDto = await response.json();
-      console.log('Incidente criado com sucesso:', data);
+      this.logger.log(`Incidente criado com sucesso: ${JSON.stringify(data)}`);
       return data;
     } catch (error) {
-      console.error('Erro ao criar incidente:', error);
+      this.logger.error('Erro ao criar incidente:', error.message);
       throw error;
     }
   }
@@ -81,6 +96,7 @@ export class BmcService {
   // Função para atualizar um incidente no BMC
   async updateIncident(body: UpdateTicketDto): Promise<void> {
     try {
+      this.logger.log(`Tentando atualizar o incidente com ID: ${body.id}`);
       const token = await this.getToken();
       const response = await fetch(
         `${process.env.BMC_URL_PROD}/com.bmc.dsm.itsm.itsm-rest-api/incident/${body.id}`,
@@ -97,18 +113,23 @@ export class BmcService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(
+        this.logger.error(
           `Erro ao atualizar incidente: ${response.status} ${response.statusText}`,
         );
-        console.error('Detalhes do erro:', errorText);
+        this.logger.error('Detalhes do erro:', errorText);
         return;
       }
 
       const responseText = await response.text();
       const responseData = responseText ? JSON.parse(responseText) : {};
-      console.log('Incidente atualizado com sucesso:', responseData);
+      this.logger.log(
+        `Incidente atualizado com sucesso: ${JSON.stringify(responseData)}`,
+      );
     } catch (error) {
-      console.error('Erro na requisição para atualizar incidente:', error);
+      this.logger.error(
+        'Erro na requisição para atualizar incidente:',
+        error.message,
+      );
       throw error; // Re-throw to propagate error to the caller
     }
   }
@@ -119,7 +140,7 @@ export class BmcService {
 
     // Verifica se o token não existe ou é inválido
     if (!token) {
-      console.log(
+      this.logger.warn(
         'Token não encontrado no cache ou expirado. Realizando login...',
       );
       token = await this.login({
