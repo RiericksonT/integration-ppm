@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Inject, Injectable } from '@nestjs/common';
 import { TrelloService } from 'src/trello/trello.service';
 
 import { ITicketINCDto } from './interface/ITicketINC';
 import { IncidentResponseWrapperDto } from './interface/IIncidenteResponse';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { UpdateTicketDto } from './interface/IUpdateTicket';
 
 @Injectable()
 export class BmcService {
@@ -46,7 +48,6 @@ export class BmcService {
         await this.cacheManager.set('token', JSON.stringify(token), 520000);
       }
       const tokenString = await this.cacheManager.get('token');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const token =
         typeof tokenString === 'string' ? JSON.parse(tokenString) : tokenString;
       if (!token) {
@@ -82,6 +83,56 @@ export class BmcService {
     } catch (error) {
       console.error('Erro ao criar incidente:', error);
       throw error;
+    }
+  }
+
+  async updateIncident(body: UpdateTicketDto) {
+    try {
+      if (!(await this.cacheManager.get('token'))) {
+        const token = await this.login({
+          username: `${process.env.BMC_USER}`,
+          password: `${process.env.BMC_PASSWORD}`,
+        });
+
+        await this.cacheManager.set('token', JSON.stringify(token), 520000);
+      }
+      const tokenString = await this.cacheManager.get('token');
+      const token =
+        typeof tokenString === 'string' ? JSON.parse(tokenString) : tokenString;
+      if (!token) {
+        throw new Error('Failed to login and retrieve token');
+      }
+
+      console.log('Token recebido!');
+      const response = await fetch(
+        `${process.env.BMC_URL_PROD}/com.bmc.dsm.itsm.itsm-rest-api/incident/${body.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'X-Requested-By': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+            Authorization: `AR-JWT ${token}`,
+          },
+          body: JSON.stringify(body),
+        },
+      );
+
+      if (!response.ok) {
+        console.error(
+          `Erro ao atualizar incidente: ${response.status} - ${response.statusText}`,
+        );
+        const errorText = await response.text(); // Captura o corpo da resposta mesmo que não seja JSON
+        console.error('Detalhes do erro:', errorText);
+        return;
+      }
+
+      // Verifica se há conteúdo antes de tentar parsear JSON
+      const responseText = await response.text();
+      const responseData = responseText ? JSON.parse(responseText) : {};
+
+      console.log('Incidente atualizado com sucesso:', responseData);
+    } catch (error) {
+      console.error('Erro na requisição:', error);
     }
   }
 }
