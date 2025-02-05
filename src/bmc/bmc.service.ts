@@ -19,7 +19,7 @@ export class BmcService {
     password: string;
   }): Promise<string> {
     try {
-      const res = await fetch(`${process.env.BMC_URL_QA}/jwt/login`, {
+      const res = await fetch(`${process.env.BMC_URL_PROD}/jwt/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -51,7 +51,7 @@ export class BmcService {
   ): Promise<IncidentResponseWrapperDto> {
     try {
       const token = await this.getToken();
-      const url = `${process.env.BMC_URL_QA}/arsys/v1/entry/HPD:IncidentInterface_Create?fields=values(Incident Number)`;
+      const url = `${process.env.BMC_URL_PROD}/arsys/v1/entry/HPD:IncidentInterface_Create?fields=values(Incident Number)`;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -83,7 +83,7 @@ export class BmcService {
     try {
       const token = await this.getToken();
       const response = await fetch(
-        `${process.env.BMC_URL_QA}/com.bmc.dsm.itsm.itsm-rest-api/incident/${body.id}`,
+        `${process.env.BMC_URL_PROD}/com.bmc.dsm.itsm.itsm-rest-api/incident/${body.id}`,
         {
           method: 'PATCH',
           headers: {

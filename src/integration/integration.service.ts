@@ -15,7 +15,7 @@ export class IntegrationService {
     ['"NoBurn" P/DEPLOY EM QA', 3],
     ['TESTE QA', 3],
     ['VALIDAÇÃO', 3],
-    ['"NoBurn" VALIDADO', 4],
+    ["'NoBurn' VALIDADO", 4],
   ]);
 
   constructor(
