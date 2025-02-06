@@ -19,6 +19,7 @@ export class IntegrationService {
     ['TESTE QA', 3],
     ['VALIDAÇÃO', 3],
     ["'NoBurn' VALIDADO", 4],
+    ["'NoBurn' CONCLUÍDO 🎉", 4],
   ]);
 
   constructor(
@@ -70,8 +71,8 @@ export class IntegrationService {
         Last_Name: lastName,
         Description: cardDetails.name,
         Detailed_Decription: cardDetails.desc,
-        Impact: '1-Critical',
-        Urgency: '1-Critical',
+        Impact: '3-Moderate',
+        Urgency: '3-Medium',
         Status: 'Assigned',
         'Reported Source': 'Direct Input',
         Service_Type: 'User Service Request',
