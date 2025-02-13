@@ -214,7 +214,7 @@ export class BmcService {
       this.logger.log(
         `Response da busca pela req:${JSON.stringify(responseData)}`,
       );
-      const requestID = responseData.SysRequestID;
+      const requestID = responseData.entries[0].values.SysRequestID;
       this.logger.log(`ID da request obito: ${JSON.stringify(requestID)}`);
       return requestID;
     } catch (error) {
