@@ -3,6 +3,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { BmcService } from 'src/bmc/bmc.service';
 import { ITicketINCDto } from 'src/bmc/interface/ITicketINC';
+import { SurveyRequestDto } from 'src/bmc/interface/IUpdateRequest';
 import { UpdateTicketDto } from 'src/bmc/interface/IUpdateTicket';
 import { Applogger } from 'src/logger/logger.service';
 import { TrelloCardDto } from 'src/trello/interface/ICard';
@@ -101,6 +102,45 @@ export class IntegrationService {
         cardDetails.id,
         incident.values['Incident Number'],
       );
+
+      const bodyRequest: SurveyRequestDto = {
+        values: {
+          acmo_AnexoGuid: 'AGGDOJJ0J5KT2ASRKQPJSRKQPJCA0X',
+          'Active Approval': 'Yes',
+          Status_Reason: 'New Request',
+          acmo_FormAnexo: 'APP',
+          AOICreated: null,
+          AppRequestInstanceID: null,
+          ASGRPID: process.env.BMC_SUPPORT_GROUP_ID ?? '',
+          'Assignee Group': process.env.BMC_SUPPORT_GROUP_NAME ?? '',
+          BS_DatasetId: 'BMC.ASSET',
+          z1D_Int2: 1,
+          NT_ApproverNotification: 'Notify Approver',
+          NT_AssignNotification: 'Notify Assignee',
+          'Reason Code_Assignee': 'SH0011439CCAD4cYPjRAXvy4EQ8cYB',
+          CSQ_Instance_ID: 'AGGAA5V0F1MVSAPFWG09PEZLNKAQQO',
+          'SR Type Field 2': '04HS',
+          acmo_resolucao:
+            'Sua solicitação foi concluída. Caso tenha dúvidas, entre em contato com nosso suporte.',
+          acmo_EmailSubject:
+            'Pesquisa de satisfação sobre o nível do atendimento Grupo Moura',
+          acmo_tmpBodyEmail:
+            '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n<html>\n<head>\n<meta name="viewport" content="width=device-width" />\n<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />\n<title>Simple Transactional Email</title>\n<style>\n/* Seus estilos CSS permanecem os mesmos */\n</style>\n</head>\n<body>\n<table cellpadding="0" cellspacing="0" class="body">\n<tr>\n<td class="container">\n<div class="content">\n<table class="main">\n<tr>\n<td class="wrapper">\n<table cellpadding="0" cellspacing="0">\n<tr>\n<td class="hero">\n<img src="https://i.ibb.co/2hZDd2B/logo-sdm-2.jpg" alt="" width="77" height="50" style="float: left;" >\n<img src="https://i.ibb.co/YbSkrgP/logo.png" alt="" width="160" height="52" style="float: right;" />\n</td>\n</tr>\n</table>\n<hr>\n<h2 style="text-align: center;"><span style="color: #4485b8;">Conclusão do chamado e pesquisa de satisfação</span></h2>\n<hr>\nSeu card foi concluído. Avalie nosso serviço.<br><br>\n<table align="center" max-width="300px" style="margin: 0 auto; max-width: 300px;">\n<tbody>\n<tr>\n<td style="width: 60px;"><a href="mailto:#$18087$#?subject=Pesquisa de Satisfação - Terrível REQ000001057500&body=#NÃO MODIFIQUE ESTA LINHA E NEM O ASSUNTO DO EMAIL 0#%0ADiga-nos como podemos melhorar:"><img src="https://i.ibb.co/6Zz3gcs/angry.png" width="40" height="40"></a></td>\n<td style="width: 60px;"><a href="mailto:#$18087$#?subject=Pesquisa de Satisfação - Não Gostei REQ000001057500&body=#NÃO MODIFIQUE ESTA LINHA E NEM O ASSUNTO DO EMAIL 2#%0ADiga-nos como podemos melhorar:"><img src="https://i.ibb.co/NVTB914/sad.png" width="40" height="40"></a></td>\n<td style="width: 60px;"><a href="mailto:#$18087$#?subject=Pesquisa de Satisfação - Okay REQ000001057500&body=#NÃO MODIFIQUE ESTA LINHA E NEM O ASSUNTO DO EMAIL 6#%0ADiga-nos como podemos melhorar:"><img src="https://i.ibb.co/ZWTr1Vg/neutral.png" width="40" height="40"></a></td>\n<td style="width: 60px;"><a href="mailto:#$18087$#?subject=Pesquisa de Satisfação - Bom REQ000001057500&body=#NÃO MODIFIQUE ESTA LINHA E NEM O ASSUNTO DO EMAIL 8#%0AVocê disse que foi bom, diga-nos como podemos melhorar:"><img src="https://i.ibb.co/Brmv3Dw/smile.png" width="40" height="40"></a></td>\n<td style="width: 60px;"><a href="mailto:#$18087$#?subject=Pesquisa de Satisfação - Excelente REQ000001057500&body=#NÃO MODIFIQUE ESTA LINHA E NEM O ASSUNTO DO EMAIL 10#%0AExcelente! Diga-nos o que você mais gostou:"><img src="https://i.ibb.co/8jbDYdX/smiling.png" width="40" height="40"></a></td>\n</tr>\n</tbody>\n</table> ',
+          'Source Keyword': 'MyIT',
+          SurveyAssocInstanceID: null,
+          z1D_SurveyCheck: null,
+          Priority: 'Medium',
+          Urgency: '3-Medium',
+          Impact: '4-Minor/Localized',
+          Company: 'Grupo Moura',
+        },
+      };
+
+      await this.bmcService.updateRequest(
+        bodyRequest,
+        incident.values['Incident Number'],
+      );
+      this.logger.log('Request atualizada para enviar o forms');
 
       return {
         incident: incident.values['Incident Number'],

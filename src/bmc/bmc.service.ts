@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -8,6 +9,7 @@ import { IncidentResponseWrapperDto } from './interface/IIncidenteResponse';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { UpdateTicketDto } from './interface/IUpdateTicket';
 import { Applogger } from 'src/logger/logger.service';
+import { SurveyRequestDto } from './interface/IUpdateRequest';
 
 @Injectable()
 export class BmcService {
@@ -128,6 +130,86 @@ export class BmcService {
     } catch (error) {
       this.logger.error(
         'Erro na requisição para atualizar incidente:',
+        error.message,
+      );
+      throw error; // Re-throw to propagate error to the caller
+    }
+  }
+
+  async updateRequest(body: SurveyRequestDto, incID: string): Promise<void> {
+    try {
+      const id = await this.getReqID(incID);
+      this.logger.log(
+        `Tentando pegar o id da request linkada ao incidente com ID: ${id}`,
+      );
+      const token = await this.getToken();
+      const response = await fetch(
+        `${process.env.BMC_URL_PROD}/api/arsys/v1/entry/SRM:Request/${id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'X-Requested-By': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+            Authorization: `AR-JWT ${token}`,
+          },
+          body: JSON.stringify(body),
+        },
+      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        this.logger.error(
+          `Erro ao obter id da req: ${response.status} ${response.statusText}`,
+        );
+        this.logger.error('Detalhes do erro:', errorText);
+        return;
+      }
+
+      this.logger.log(`Id obtido com sucesso: ${JSON.stringify(!response.ok)}`);
+      return;
+    } catch (error) {
+      this.logger.error(
+        'Erro na requisição para atualizar a request:',
+        error.message,
+      );
+      throw error; // Re-throw to propagate error to the caller
+    }
+  }
+
+  private async getReqID(incID: string) {
+    try {
+      this.logger.log(
+        `Tentando buscar a request linkada ao incidente com ID: ${incID}`,
+      );
+      const token = await this.getToken();
+      const response = await fetch(
+        `${process.env.BMC_URL_PROD}/api/arsys/v1/entry/SRM:Request?limit=50&q='AppRequestID'=${incID}`,
+        {
+          method: 'GET',
+          headers: {
+            'X-Requested-By': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+            Authorization: `AR-JWT ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        this.logger.error(
+          `Erro ao obter id da req: ${response.status} ${response.statusText}`,
+        );
+        this.logger.error('Detalhes do erro:', errorText);
+        return;
+      }
+
+      const responseText = await response.text();
+      const responseData = responseText ? JSON.parse(responseText) : {};
+      const requestID = responseData.SysRequestID;
+      this.logger.log(`ID da request obito: ${JSON.stringify(requestID)}`);
+      return requestID;
+    } catch (error) {
+      this.logger.error(
+        'Erro na requisição para obter id da req:',
         error.message,
       );
       throw error; // Re-throw to propagate error to the caller
