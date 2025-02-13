@@ -144,7 +144,7 @@ export class BmcService {
       );
       const token = await this.getToken();
       const response = await fetch(
-        `${process.env.BMC_URL_PROD}/api/arsys/v1/entry/SRM:Request/${id}`,
+        `${process.env.BMC_URL_PROD}/arsys/v1/entry/SRM:Request/${id}`,
         {
           method: 'PUT',
           headers: {
@@ -182,7 +182,7 @@ export class BmcService {
       );
       const token = await this.getToken();
       const response = await fetch(
-        `${process.env.BMC_URL_PROD}/api/arsys/v1/entry/SRM:Request?limit=50&q='AppRequestID'=${incID}`,
+        `${process.env.BMC_URL_PROD}/arsys/v1/entry/SRM:Request?limit=50&q='AppRequestID'=${incID}`,
         {
           method: 'GET',
           headers: {
@@ -209,7 +209,7 @@ export class BmcService {
       return requestID;
     } catch (error) {
       this.logger.error(
-        'Erro na requisição para obter id da req:',
+        'Erro na requisição para Erro ao obter id da req:',
         error.message,
       );
       throw error; // Re-throw to propagate error to the caller
