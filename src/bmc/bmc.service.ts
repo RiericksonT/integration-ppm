@@ -207,7 +207,9 @@ export class BmcService {
 
       const responseText = await response.text();
       const responseData = responseText ? JSON.parse(responseText) : {};
-      console.log(`Response da busca pela req:${responseData}`);
+      this.logger.log(
+        `Response da busca pela req:${JSON.stringify(responseData)}`,
+      );
       const requestID = responseData.SysRequestID;
       this.logger.log(`ID da request obito: ${JSON.stringify(requestID)}`);
       return requestID;
