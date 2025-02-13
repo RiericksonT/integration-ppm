@@ -138,6 +138,9 @@ export class BmcService {
 
   async updateRequest(body: SurveyRequestDto, incID: string): Promise<void> {
     try {
+      this.logger.log(
+        `Udapte requeste iniciado buscando a req vinculada a: ${incID}`,
+      );
       const id = await this.getReqID(incID);
       this.logger.log(
         `Tentando pegar o id da request linkada ao incidente com ID: ${id}`,
@@ -204,6 +207,7 @@ export class BmcService {
 
       const responseText = await response.text();
       const responseData = responseText ? JSON.parse(responseText) : {};
+      console.log(`Response da busca pela req:${responseData}`);
       const requestID = responseData.SysRequestID;
       this.logger.log(`ID da request obito: ${JSON.stringify(requestID)}`);
       return requestID;
