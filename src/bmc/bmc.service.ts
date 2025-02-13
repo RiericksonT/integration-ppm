@@ -161,7 +161,7 @@ export class BmcService {
       if (!response.ok) {
         const errorText = await response.text();
         this.logger.error(
-          `Erro ao obter id da req: ${response.status} ${response.statusText}`,
+          `Erro ao atualizar a req: ${response.status} ${response.statusText}`,
         );
         this.logger.error('Detalhes do erro:', errorText);
         return;
@@ -196,13 +196,17 @@ export class BmcService {
         },
       );
 
+      this.logger.log(
+        `URL da busca: ${process.env.BMC_URL_PROD}/arsys/v1/entry/SRM:Request?limit=50&q='AppRequestID'="${incID}"`,
+      );
+
       if (!response.ok) {
         const errorText = await response.text();
         this.logger.error(
           `Erro ao obter id da req: ${response.status} ${response.statusText}`,
         );
         this.logger.error('Detalhes do erro:', errorText);
-        return;
+        throw new Error('Erro ao obter id da req');
       }
 
       const responseText = await response.text();
