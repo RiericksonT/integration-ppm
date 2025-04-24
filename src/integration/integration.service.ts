@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/only-throw-error */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Injectable, BadRequestException } from '@nestjs/common';
@@ -20,7 +24,12 @@ export class IntegrationService {
     ['VALIDAÇÃO', 4],
     ["'NoBurn' VALIDADO", 4],
     ["'NoBurn' CONCLUÍDO 🎉", 4],
+    ['CONCLUÍDO', 4],
   ]);
+
+  private readonly allowedLabels = ['Website', 'BUG', 'Melhoria'];
+
+  //Apenas um comentario para usar o editor
 
   constructor(
     private readonly bmcService: BmcService,
@@ -43,6 +52,23 @@ export class IntegrationService {
       this.logger.log(
         `Detalhes do Card obtidos: ${JSON.stringify(cardDetails)}`,
       );
+
+      const isCardValid = (cardDetails, allLabels) => {
+        const cardLabelNames = cardDetails.idLabels
+          .map((id) => allLabels.find((label) => label.id === id)?.name)
+          .filter(Boolean); // remove undefined caso não encontre algum id
+
+        // Verifica se algum label do card NÃO está na lista de permitidos
+        const hasInvalidLabel = cardLabelNames.some(
+          (name) => !this.allowedLabels.includes(name),
+        );
+
+        return !hasInvalidLabel;
+      };
+
+      if (!isCardValid(cardDetails, this.allowedLabels)) {
+        throw Error;
+      }
 
       const [firstName, lastName] = this.extractName(cardDetails);
       this.logger.log(`Nome extraído: ${firstName} ${lastName}`);
