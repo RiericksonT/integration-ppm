@@ -95,6 +95,7 @@ export class TicketValuesDto {
     enum: ['Yes', 'No'],
   })
   Flag_Create_Request: 'Yes' | 'No';
+  AppRequestAssignee: string;
 }
 
 export class ITicketINCDto {
