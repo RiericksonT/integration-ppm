@@ -31,7 +31,6 @@ export class IntegrationController {
   //Required endpoint to create a webhook on trello
   @Get('v1/sync')
   getSync() {
-    console.log('getSync');
-    return;
+    return { message: 'Webhook validado com sucesso' };
   }
 }

@@ -39,10 +39,35 @@ export class IntegrationService {
     this.logger.setContext('Integration Service');
   }
 
+  private readonly processedActions = new Set<string>();
+
+  // Limpar cache após 5 minutos
+  private readonly CACHE_EXPIRATION_MS = 5 * 60 * 1000;
+
+  private markEventAsProcessed(actionId: string) {
+    this.processedActions.add(actionId);
+    setTimeout(() => {
+      this.processedActions.delete(actionId);
+    }, this.CACHE_EXPIRATION_MS);
+  }
+
+  private isEventAlreadyProcessed(actionId: string): boolean {
+    return this.processedActions.has(actionId);
+  }
+
   async sync(body: TrelloEventDTO) {
     this.logger.log(
       `Iniciando sincronização com Trello: ${JSON.stringify(body)}`,
     );
+
+    const actionId = body.action.id;
+
+    if (this.isEventAlreadyProcessed(actionId)) {
+      this.logger.log(`Evento duplicado ignorado: ${actionId}`);
+      return;
+    }
+
+    this.markEventAsProcessed(actionId);
 
     try {
       const { id, status, action } = this.processRequest(body);
@@ -67,7 +92,7 @@ export class IntegrationService {
       };
 
       if (!isCardValid(cardDetails, this.allowedLabels)) {
-        throw Error;
+        throw new BadRequestException('O cartão possui labels inválidos');
       }
 
       const [firstName, lastName] = this.extractName(cardDetails);
