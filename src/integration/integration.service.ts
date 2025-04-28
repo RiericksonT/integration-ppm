@@ -137,7 +137,6 @@ export class IntegrationService {
         'Assigned Support Organization': 'DTISS',
         z1D_Action: 'CREATE',
         Flag_Create_Request: 'Yes',
-        Assignee: 'Adryel Torres',
       },
     };
 
