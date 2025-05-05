@@ -28,7 +28,7 @@ export class IntegrationService {
     ['CONCLUÍDO', 4],
   ]);
 
-  private readonly allowedLabels = ['Website', 'BUG', 'Melhoria'];
+  private readonly allowedLabels = ['Website', 'BUG', 'Melhoria', 'API'];
 
   //Apenas um comentario para usar o editor
 
