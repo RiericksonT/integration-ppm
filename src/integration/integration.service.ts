@@ -22,6 +22,7 @@ export class IntegrationService {
     ['"NoBurn" P/DEPLOY EM QA', 3],
     ['TESTE QA', 3],
     ['VALIDAÇÃO', 4],
+    ['REFAZER', 4],
     ["'NoBurn' VALIDADO", 4],
     ["'NoBurn' CONCLUÍDO 🎉", 4],
     ['CONCLUÍDO', 4],
